@@ -6,5 +6,5 @@ import menuPrincipal, os
 
 menuPrincipal.menu_principal()
 os.system("cls")
-print("Gracias por usar el programa hasta luego......")
+print("Gracias por usar el programa hasta pronto......")
 
