@@ -6,5 +6,9 @@ import menuPrincipal, os
 
 menuPrincipal.menu_principal()
 os.system("cls")
+<<<<<<< HEAD
 print("Gracias por usar el programa hasta luego......")
+=======
+print("Gracias por usar el programa hasta pronto......")
+>>>>>>> 5a72e7ec9126216e70b7ab3b8a7123ad42060b0c
 

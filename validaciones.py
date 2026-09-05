@@ -82,6 +82,7 @@ def validar_contrasena(contrasena):
     return bool(re.match(patron, contrasena))
 
 
+<<<<<<< HEAD
 def calcular_edad(fecha_nac, hoy):
     """
     Calcula los anios cumplidos a la fecha indicada.
@@ -96,6 +97,11 @@ def validar_fecha_nacimiento(fecha_str, formato="%d-%m-%Y", edad_minima=18):
     """
     Valida que la fecha exista, no sea futura y que la persona
     sea mayor de edad (18 anios por defecto).
+=======
+def validar_fecha_nacimiento(fecha_str, formato="%d-%m-%Y"):
+    """
+    Valida que la fecha exista, sea valida y no sea en el futuro.
+>>>>>>> 5a72e7ec9126216e70b7ab3b8a7123ad42060b0c
     Formato por defecto: DD-MM-AAAA (ejemplo: '25-08-1995')
     """
     try:
@@ -105,12 +111,16 @@ def validar_fecha_nacimiento(fecha_str, formato="%d-%m-%Y", edad_minima=18):
         if fecha_nac > hoy:
             return False
 
+<<<<<<< HEAD
         edad = calcular_edad(fecha_nac, hoy)
 
         if edad < edad_minima:
             return False
 
         if edad > 120:
+=======
+        if (hoy.year - fecha_nac.year) > 120:
+>>>>>>> 5a72e7ec9126216e70b7ab3b8a7123ad42060b0c
             return False
 
         return True
