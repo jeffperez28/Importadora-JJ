@@ -1,0 +1,207 @@
+-- BASE DE DATOS IMPORTADORA JJ
+
+
+
+USE importadorajj;
+
+
+CREATE TABLE usuario (
+    cedula_usuario VARCHAR(10) PRIMARY KEY NOT NULL,
+    nombres VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    telefono VARCHAR(15) NOT NULL,
+    correo_electronico VARCHAR(100) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    contrasena VARCHAR(255) NOT NULL,
+    rol ENUM('ADMINISTRADOR', 'BODEGUERO', 'VENDEDOR') NOT NULL,
+    estado ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo'
+);
+
+
+
+CREATE TABLE cliente (
+    cedula_cliente VARCHAR(10) PRIMARY KEY NOT NULL,
+    nombres VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    telefono VARCHAR(15) NOT NULL,
+    correo_electronico VARCHAR(100) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    estado ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo',
+    fk_cedula_vendedor VARCHAR(10) NULL,
+    FOREIGN KEY (fk_cedula_vendedor) REFERENCES usuario(cedula_usuario)
+);
+
+
+CREATE TABLE producto (
+    codigo_producto VARCHAR(6) PRIMARY KEY NOT NULL,
+    nombre_producto VARCHAR(150) NOT NULL,
+    cantidad INT NOT NULL DEFAULT 0,
+    descripcion TEXT,
+    costo DECIMAL(10,2) NOT NULL,
+    estado ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo'
+);
+
+
+
+CREATE TABLE factura (
+    id_factura INT PRIMARY KEY AUTO_INCREMENT,
+    fk_cedula_cliente VARCHAR(10) NOT NULL,
+    fk_cedula_usuario VARCHAR(10) NOT NULL,
+    fecha_elaboracion TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (fk_cedula_cliente) REFERENCES cliente(cedula_cliente),
+    FOREIGN KEY (fk_cedula_usuario) REFERENCES usuario(cedula_usuario)
+);
+
+
+
+
+CREATE TABLE detalle (
+    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
+    fk_id_factura INT NOT NULL,
+    fk_codigo_producto VARCHAR(6) NOT NULL,
+    cantidad INT NOT NULL,
+    valor_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    descuento DECIMAL(10,2) DEFAULT 0.00,
+    FOREIGN KEY (fk_id_factura) REFERENCES factura(id_factura),
+    FOREIGN KEY (fk_codigo_producto) REFERENCES producto(codigo_producto)
+);
+
+
+
+
+-----------------------------
+-- Primero ingreso factura 
+
+INSERT INTO facturas(CI_CLIENTE, TOTAL)
+    VALUES (1719475947, 40.20);
+
+-- Segundo ingresa el detalle de factura
+INSERT INTO detalle_factura(ID_FACTURA, CODIGO_PRODUCTO, CANTIDAD, PRECIO_UNITARIO, SUBTOTAL)
+    VALUES (11, 'P00011', 2, 24.5, 0);
+
+-- Actualizamos 
+
+UPDATE  detalle_factura 
+SET SUBTOTAL = 49
+WHERE ID_FACTURA =11;
+
+SELECT CANTIDAD * PRECIO_UNITARIO FROM detalle_factura WHERE ID_FACTURA = 11;
+
+UPDATE detalle_factura set subtotal =  * valor unitari where ID_FACTURA = 11;
+
+
+
+INGRESAR A UN ADMINISTRADOR
+
+INSERT INTO usuario (cedula_usuario, nombres, apellidos, telefono, correo_electronico, direccion, fecha_nacimiento, contrasena, rol, estado)
+VALUES ('1004768915', 'Jefferson', 'Perez', '0967735530', 'jeff@gmail.com', 'Av galeanos y hermanas pazmino', '2001-06-28', '81dc9bdb52d04dc20036dbd8313ed055', 'ADMINISTRADOR', 'activo');
+
+INGRESAR UN VENDEDOR
+
+INSERT INTO usuario (cedula_usuario, nombres, apellidos, telefono, correo_electronico, direccion, fecha_nacimiento, contrasena, rol, estado)
+VALUES ('1002642930', 'Zoila Edelfina', 'Perez Diaz', '0985340412', 'zoila@gmail.com', 'Av Rafael Sanchez y Carlos emilio grijalva', '1982-11-25', '9793a72ab9a9fca2fd01f98a5bc0521b', 'VENDEDOR', 'activo');
+
+INGRESAR AUN BODEGUERO
+
+INSERT INTO usuario (cedula_usuario, nombres, apellidos, telefono, correo_electronico, direccion, fecha_nacimiento, contrasena, rol, estado)
+VALUES ('1003598339', 'Carlos David', 'Churaco Bedoya', '0991775495', 'carlos@gmail.com', 'La florida', '1986-01-01', '9793a72ab9a9fca2fd01f98a5bc0521b', 'BODEGUERO', 'activo');
+
+
+
+
+
+
+
+CREACION DE UN FLUJO
+
+
+Creacion de un flujo para factura 
+
+-- PASO 1: INSERTAR FACTURA
+INSERT INTO factura (fk_cedula_cliente, fk_cedula_usuario, total)
+VALUES (0703558064, 1002642930, 0.00);
+
+-- PASO 2: INSERTAR DETALLES
+INSERT INTO detalle (fk_id_factura, fk_codigo_producto, cantidad, valor_unitario, subtotal)
+VALUES (1, 'P00001', 2, 150.00, 0);
+
+-- PASO 3: CALCULAR SUBTOTALES
+UPDATE detalle
+SET subtotal = cantidad * valor_unitario
+WHERE fk_id_factura = 1;
+
+-- PASO 4: DESCONTAR STOCK
+UPDATE producto SET cantidad = cantidad - 2 WHERE codigo_producto = 'P00001';
+
+-- PASO 5: VERIFICAR SUBTOTAL
+SELECT cantidad * valor_unitario FROM detalle WHERE fk_id_factura = 1;
+
+
++---------------------------+
+| cantidad * valor_unitario |
++---------------------------+
+|                     50.00 |
+|                     76.00 |
+|                    300.00 |
++---------------------------+
+
+
+
+-- PASO 6: CALCULAR TOTAL
+SELECT SUM(subtotal) AS total_factura FROM detalle WHERE fk_id_factura = 1;
+
+
++---------------+
+| total_factura |
++---------------+
+|        426.00 |
++---------------+
+
+-- PASO 7: ACTUALIZAR TOTAL EN FACTURA
+UPDATE factura SET total = 485.00 WHERE id_factura = 1;
+
+-- PASO 8: CALCULAR IVA (12%)
+SELECT total * 0.12 AS iva FROM factura WHERE id_factura = 1;
+
+
++---------+
+| iva     |
++---------+
+| 58.2000 |
++---------+
+
+
+-- PASO 9: TOTAL CON IVA
+SELECT total + (total * 0.12) AS total_con_iva FROM factura WHERE id_factura = 1;
+
+
++---------------+
+| total_con_iva |
++---------------+
+|      543.2000 |
++---------------+
+
+
+--
+
+INSERTAR DATOS EN Usuarios
+
+INSERT INTO USUARIO (cedula_usuario, nombres, apellidos, telefono, correo_electronico, direccion, fecha_nacimiento, contrasena, rol, estado)
+VALUES ('1712345678', 'Maria Jose', 'Torres Vega', '0991234567', 'maria@gmail.com', 'Av galeanos', '1995-04-15', 'Tatara01@', 'VENDEDOR', 'activo');
+
+ELIMINAR UN USUARIO ESPECÍFICO
+
+DELETE FROM usuario
+WHERE cedula_usuario = '1712345678';
+
+
+
+FACTURAS CON EL NOMBRE DEL CLIENTE 
+
+SELECT f.id_factura, c.nombres, c.apellidos, f.fecha_elaboracion, f.total
+FROM factura f INNER JOIN cliente c ON f.fk_cedula_cliente = c.cedula_cliente
+ORDER BY f.fecha_elaboracion;
